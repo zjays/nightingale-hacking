@@ -36,7 +36,7 @@
 { 0xAFCF7797, 0x8923, 0x4033, \
 { 0xA4, 0x31, 0x35, 0x9A, 0x7C, 0x73, 0x34, 0xF4 } }
 
-#define SB_MACREMOTECONTROLSERVICE_CONTRACTID \ 
+#define SB_MACREMOTECONTROLSERVICE_CONTRACTID \
 "@songbirdnest.com/mac-remote-service;1"
 
 

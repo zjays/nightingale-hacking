@@ -27,7 +27,7 @@
 var Cc = Components.classes;
 var Ci = Components.interfaces;
 
-var isListening = false;
+var startRemoteControl = false;
 
 var gRemoteControlService = Cc["@songbirdnest.com/mac-remote-service;1"]
                             .getService(Ci.sbIAppleRemoteService);
@@ -42,9 +42,9 @@ try {
   shouldAutoEnable = 
     gPrefService.getBoolPref("extensions.apple-remote.autoenable");
 
-  if (shouldAutoEnable && gRemoteControlService.isSupported) {
+  if (shouldAutoEnable && !gRemoteControlService.isCandelairRequired) {
     gRemoteControlService.startListening();
-    isListening = true;
+    startRemoteControl = true;
 
     setTimeout(
       function() { 
@@ -65,7 +65,7 @@ catch (e) {
 // If the current machine doesn't support the apple remote, don't
 // enable the menu item.
 
-if (!gRemoteControlService.isSupported) {
+if (gRemoteControlService.isCandelairRequired) {
   // HACK: Set a timeout to find the menuitem..
   setTimeout(
     function() { 
@@ -81,13 +81,13 @@ if (!gRemoteControlService.isSupported) {
 
 function ToggleAppleRemote()
 {
-  if (isListening) {
+  if (startRemoteControl) {
     gRemoteControlService.stopListening();
-    isListening = false;
+    startRemoteControl = false;
   }
   else {
     gRemoteControlService.startListening();
-    isListening = true;
+    startRemoteControl = true;
   }
 }
 
