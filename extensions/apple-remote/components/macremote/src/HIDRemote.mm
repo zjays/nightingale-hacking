@@ -1693,8 +1693,7 @@ static HIDRemote *sHIDRemote = nil;
 			[shTimer invalidate];
 			[hidAttribsDict removeObjectForKey:kHIDRemoteSimulateHoldEventsTimer];
 
-			[self _sendButtonCode:(HIDRemoteButtonCode)[shButtonCode unsignedIntValue] isPressed:YES hidAttribsDict:hidAttribsDict];
-			[self _sendButtonCode:(kHIDRemoteButtonCodeHoldMask) isPressed:YES hidAttribsDict:hidAttribsDict];
+			[self _sendButtonCode:(HIDRemoteButtonCode) (((HIDRemoteButtonCode)[shButtonCode unsignedIntValue])|(HIDRemoteButtonCode) kHIDRemoteButtonCodeHoldMask) isPressed:YES hidAttribsDict:hidAttribsDict];
 		}
 	}
 }
@@ -1748,8 +1747,7 @@ static HIDRemote *sHIDRemote = nil;
 					{
 						if (shButtonCode!=nil)
 						{
-							[self _sendButtonCode:(HIDRemoteButtonCode)[shButtonCode unsignedIntValue] isPressed:NO hidAttribsDict:hidAttribsDict];
-							[self _sendButtonCode:(kHIDRemoteButtonCodeHoldMask) isPressed:NO hidAttribsDict:hidAttribsDict];
+							[self _sendButtonCode:(HIDRemoteButtonCode) (((HIDRemoteButtonCode)[shButtonCode unsignedIntValue])|(HIDRemoteButtonCode) kHIDRemoteButtonCodeHoldMask) isPressed:NO hidAttribsDict:hidAttribsDict];
 						}
 					}
 				}
@@ -1809,8 +1807,7 @@ static HIDRemote *sHIDRemote = nil;
 			buttonCode = kHIDRemoteButtonCodePlayHold;
 		}
 	
-		[((NSObject <HIDRemoteDelegate> *)[self delegate]) hidRemote:self eventWithButton:buttonCode isPressed:isPressed fromHardwareWithAttributes:hidAttribsDict];
-		[((NSObject <HIDRemoteDelegate> *)[self delegate]) hidRemote:self eventWithButton:(HIDRemoteButtonCode)(~kHIDRemoteButtonCodeAluminumMask) isPressed:isPressed fromHardwareWithAttributes:hidAttribsDict];
+		[((NSObject <HIDRemoteDelegate> *)[self delegate]) hidRemote:self eventWithButton:(HIDRemoteButtonCode) (((HIDRemoteButtonCode)buttonCode) & ((HIDRemoteButtonCode)(~kHIDRemoteButtonCodeAluminumMask))) isPressed:isPressed fromHardwareWithAttributes:hidAttribsDict];
 	}
 }
 
