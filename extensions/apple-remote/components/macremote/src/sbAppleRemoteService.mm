@@ -85,6 +85,7 @@
 
 @interface AppleRemoteDelegate : NSObject <HIDRemoteDelegate>
 {
+  HIDRemote* mAppleRemote;
   sbAppleRemoteService *mOwner;  // weak
   HIDRemote			 *hidRemote;
 }
@@ -103,8 +104,9 @@
 - (id)initWithCallback:(sbAppleRemoteService *)aCallback
 {
   if ((self = [super init])) {
+    mAppleRemote = [[HIDRemote alloc] init];
     // Our application doesn't need these  button codes. Share this information with everybody else
-      [[HIDRemote sharedHIDRemote] setUnusedButtonCodes:[NSArray arrayWithObjects:
+      [mAppleRemote setUnusedButtonCodes:[NSArray arrayWithObjects:
 		                                                  [NSNumber numberWithInt:(int)kHIDRemoteButtonCodeMenuHold],
 														   //TODO: Add other unused button codes
 														 nil]
@@ -117,13 +119,8 @@
 
 - (void)dealloc
 {
-    // Our delegate class is deallocated. Stop the remote control and make sure HIDRemote will no longer make calls to our delegate instance.
-	[[HIDRemote sharedHIDRemote] stopRemoteControl];
-	[[HIDRemote sharedHIDRemote] setDelegate:nil];
-	
-	// ..
-	
-	[super dealloc];
+  [mAppleRemote release];
+  [super dealloc];
 }
 
 #pragma mark -- Start and stop remote control support --
@@ -132,8 +129,8 @@
   HIDRemoteMode remoteMode;
   HIDRemote *myHidRemote;
 	
-  myHidRemote = [HIDRemote sharedHIDRemote];
-  remoteMode = kHIDRemoteModeExclusiveAuto;
+  myHidRemote = mAppleRemote;
+  remoteMode = kHIDRemoteModeExclusive;
 	
   // Check whether the installation of Candelair is required to reliably operate in this mode
   if ([HIDRemote isCandelairInstallationRequiredForRemoteMode:remoteMode])
@@ -163,14 +160,16 @@
   else
   { 
     // Candelair is either already installed or not required under this OS release => proceed!
-	if (remoteMode == kHIDRemoteModeExclusive)
-	  {
+	// if (remoteMode == kHIDRemoteModeExclusive)
+	//   {
 	    // When used in exclusive, non-auto mode, enable exclusive lock lending. This isn't required but there are good reasons to do this. 
-		[myHidRemote setExclusiveLockLendingEnabled:YES];
-	  }
+	// 	[myHidRemote setExclusiveLockLendingEnabled:YES];
+	//   }
 		
 	  // Start remote control
-	  if ([[HIDRemote sharedHIDRemote] startRemoteControl:remoteMode])
+	  [mAppleRemote setDelegate:self];
+	  
+	  if ([mAppleRemote startRemoteControl:remoteMode])
 		{
 		    // Start was successful
 			return (YES);
@@ -182,13 +181,12 @@
 			NSLog(@"Couldn't start HIDRemote");
 		}
   }
-	
   return (NO);
 }
 
 - (void)stopRemoteControl
 {
-  [[HIDRemote sharedHIDRemote] stopRemoteControl];
+  [mAppleRemote stopRemoteControl];
 }
 
 #pragma mark -- Handle remote control events --
@@ -213,14 +211,8 @@
       case kHIDRemoteButtonCodeRight:
         mOwner->OnNextTrack();
         break;
-      case kHIDRemoteButtonCodeRightHold:
-        mOwner->OnNextTrackHold();
-        break;
       case kHIDRemoteButtonCodeLeft:
         mOwner->OnPrevTrack();
-        break;
-      case kHIDRemoteButtonCodeLeftHold:
-        mOwner->OnPrevTrackHold();
         break;
 
       default:
@@ -264,7 +256,7 @@ NS_IMETHODIMP
 sbAppleRemoteService::GetIsCandelairRequired(PRBool *aIsCandelairRequired)
 {
   NS_ENSURE_ARG_POINTER(aIsCandelairRequired);
-  *aIsCandelairRequired = [HIDRemote isCandelairInstallationRequiredForRemoteMode:(HIDRemoteMode)kHIDRemoteModeExclusiveAuto];
+  *aIsCandelairRequired = [HIDRemote isCandelairInstallationRequiredForRemoteMode:(HIDRemoteMode)kHIDRemoteModeExclusive];
   return NS_OK;
 }
 
@@ -356,13 +348,6 @@ sbAppleRemoteService::OnVolumeDown()
 }
 
 NS_IMETHODIMP 
-sbAppleRemoteService::OnNextTrackHold()
-{
-  // TODO: Support scanning...
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP 
 sbAppleRemoteService::OnNextTrack()
 {
   nsresult rv;
@@ -371,13 +356,6 @@ sbAppleRemoteService::OnNextTrack()
   NS_ENSURE_SUCCESS(rv, rv);
 
   return sequencer->Next(false);
-}
-
-NS_IMETHODIMP 
-sbAppleRemoteService::OnPrevTrackHold()
-{
-  // TODO: Support scanning...
-  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP 
