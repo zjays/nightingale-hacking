@@ -53,7 +53,9 @@ public:
   NS_IMETHOD OnVolumeUp();
   NS_IMETHOD OnVolumeDown();
   NS_IMETHOD OnNextTrack();
+  NS_IMETHOD OnNextTrackHold();
   NS_IMETHOD OnPrevTrack();
+  NS_IMETHOD OnPrevTrackHold();
 
 protected:
   NS_IMETHOD GetPlaybackControl(sbIMediacorePlaybackControl **aPlaybackControl);

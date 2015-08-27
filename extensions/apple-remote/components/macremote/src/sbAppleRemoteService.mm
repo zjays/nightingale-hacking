@@ -130,7 +130,7 @@
   HIDRemote *myHidRemote;
 	
   myHidRemote = mAppleRemote;
-  remoteMode = kHIDRemoteModeExclusive;
+  remoteMode = kHIDRemoteModeExclusiveAuto;
 	
   // Check whether the installation of Candelair is required to reliably operate in this mode
   if ([HIDRemote isCandelairInstallationRequiredForRemoteMode:remoteMode])
@@ -160,11 +160,11 @@
   else
   { 
     // Candelair is either already installed or not required under this OS release => proceed!
-	// if (remoteMode == kHIDRemoteModeExclusive)
-	//   {
+	if (remoteMode == kHIDRemoteModeExclusive)
+	  {
 	    // When used in exclusive, non-auto mode, enable exclusive lock lending. This isn't required but there are good reasons to do this. 
-	// 	[myHidRemote setExclusiveLockLendingEnabled:YES];
-	//   }
+	    [myHidRemote setExclusiveLockLendingEnabled:YES];
+	  }
 		
 	  // Start remote control
 	  [mAppleRemote setDelegate:self];
@@ -192,6 +192,8 @@
 #pragma mark -- Handle remote control events --
 - (void)hidRemote:(HIDRemote *)hidRemote eventWithButton:(HIDRemoteButtonCode)buttonCode isPressed:(BOOL)isPressed fromHardwareWithAttributes:(NSMutableDictionary *)attributes
 {
+  if (isPressed) 
+  {
     switch (buttonCode) {
       case kHIDRemoteButtonCodeUp:
         mOwner->OnVolumeUp();
@@ -211,13 +213,20 @@
       case kHIDRemoteButtonCodeRight:
         mOwner->OnNextTrack();
         break;
+      case kHIDRemoteButtonCodeRightHold:
+        mOwner->OnNextTrackHold();
+        break;
       case kHIDRemoteButtonCodeLeft:
         mOwner->OnPrevTrack();
+        break;
+      case kHIDRemoteButtonCodeLeftHold:
+        mOwner->OnPrevTrackHold();
         break;
 
       default:
         break;
     }
+  }
 }
 
 @end
@@ -256,7 +265,7 @@ NS_IMETHODIMP
 sbAppleRemoteService::GetIsCandelairRequired(PRBool *aIsCandelairRequired)
 {
   NS_ENSURE_ARG_POINTER(aIsCandelairRequired);
-  *aIsCandelairRequired = [HIDRemote isCandelairInstallationRequiredForRemoteMode:(HIDRemoteMode)kHIDRemoteModeExclusive];
+  *aIsCandelairRequired = [HIDRemote isCandelairInstallationRequiredForRemoteMode:(HIDRemoteMode)kHIDRemoteModeExclusiveAuto];
   return NS_OK;
 }
 
@@ -348,6 +357,13 @@ sbAppleRemoteService::OnVolumeDown()
 }
 
 NS_IMETHODIMP 
+sbAppleRemoteService::OnNextTrackHold()
+{
+  // TODO: Support scanning...
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP 
 sbAppleRemoteService::OnNextTrack()
 {
   nsresult rv;
@@ -356,6 +372,13 @@ sbAppleRemoteService::OnNextTrack()
   NS_ENSURE_SUCCESS(rv, rv);
 
   return sequencer->Next(false);
+}
+
+NS_IMETHODIMP 
+sbAppleRemoteService::OnPrevTrackHold()
+{
+  // TODO: Support scanning...
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP 
